@@ -1,3 +1,5 @@
+//https://bot-whatsapp.netlify.app/docs/add-action/
+
 const { createBot, createProvider, createFlow, addKeyword } = require('@bot-whatsapp/bot')
 
 const QRPortalWeb = require('@bot-whatsapp/portal')
@@ -72,26 +74,28 @@ const flowO1 = addKeyword('Info') //A partir de aqui me empieza a explicar la in
         [
         'Si tiene disponibilidad de horario, escriba *Disponible*',
         'Si prefiere su entrega a una hora especifica, escriba *Especifica*'
-        ], {capture:true}, (ctx) => {
+        ]
+        )
+    .addAction({capture:true}, async ctx  => {
                 if(ctx.body=='Disponible'){
-                    async(ctx, {flowDynamic, state}) => {
+                    /*async(ctx, {flowDynamic, state}) => {
                         state.update({time: ctx.body})
                         console.log('Entrega a cualquier hora')
                         console.log('Cliente: ', ctx.from)
-                        flowDynamic('¡Su entrega sera entre *10:00-18:00*!')
+                        flowDynamic('¡Su entrega sera entre *10:00-18:00*!')*/
+                        console.log('Disponible')
                      }
-                }
+                
                 else if(ctx.body=='Especifica'){
-                    flowDynamic('Digame a que hora le gustaria recibir su producto'),
+                    /*flowDynamic('Digame a que hora le gustaria recibir su producto'),
                     async(ctx, {flowDynamic, state}) => {
                         state.update({time: ctx.body})
                         console.log('Hora de entrega: ', ctx.body)
                         console.log('Cliente: ', ctx.from)
                         const myState = state.getMyState()
                         await flowDynamic('Su hora de entrega sera', myState.time)
-                    }
+                    }*/ console.log('Especifica')
                 }
-                delay(4000)
             }
     )
     .addAnswer('Su informacion quedo de la siguiente manera:', null, async (_, {flowDynamic, state}) => {
@@ -103,18 +107,17 @@ const flowO1 = addKeyword('Info') //A partir de aqui me empieza a explicar la in
                     'Fecha: ', myState.date,
                     'Hora: ', myState.time
                 ]
-            ), delay(2000)
-        }
+            )
+        },  {delay: 1000,}
     )
     .addAnswer('Su informacion ya ha sido almacenada y solamente la utilizaremos para el envio de su producto')
     .addAnswer(
         [
             'Tambien le recordamos que su pago sera *contraentrega*.🫡',
             'Lo que significa que hasta que usted *reciba su producto*, lo paga. 😉'
-        ]
+        ], {delay: 1000,}
     )
-    .addAnswer('Muchisimas gracias por su preferencia 😁')
-
+    .addAnswer('Muchisimas gracias por su preferencia 😁', {delay: 1000,})
 
 const flowO2 = addKeyword('Per')
     .addAnswer('Dime, ¿en que puedo ayudarte? 🫡', {capture:true}, (ctx) => {
@@ -181,7 +184,7 @@ const main = async () => {
         dbUri: MONGO_DB_URI,
         dbName: MONGO_DB_NAME,
     })
-    const adapterFlow = createFlow([flowPrincipal, flowDePrueba, flowCuenta, flowO1])
+    const adapterFlow = createFlow([flowPrincipal, flowDePrueba, flowCuenta, flowO1, flowO2])
     const adapterProvider = createProvider(BaileysProvider)
     createBot({
         flow: adapterFlow,

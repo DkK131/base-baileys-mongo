@@ -3,5 +3,5 @@ node_modules
 bot_sessions
 bot.qr.png
 baileys.log
-colre.class.log
+core.class.log
 pm2
