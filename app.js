@@ -51,9 +51,6 @@ const flowO1 = addKeyword('Info') //A partir de aqui me empieza a explicar la in
             flowDynamic('¡Ya casi terminamos!')
         }    
     )
-    //Aqui solicito la fecha de entrega del producto y la guardo en la variable myState.date
-    
-    .addAnswer('Le informamos que nuestras entregas son *gratuitas* para *Altamira, Tampico y Madero*')
     
     .addAnswer('Su informacion quedo de la siguiente manera:', null, async (_, {flowDynamic, state}) => {
             const myState = state.getMyState()
@@ -73,7 +70,7 @@ const flowO1 = addKeyword('Info') //A partir de aqui me empieza a explicar la in
         ], {delay: 250,}
     )
     .addAnswer('Y en un momento más, uno de nuestros *Agentes* se pondrá en contacto con ud. para la entrega de su producto 😁😁👌')
-
+    .addAnswer('Le informamos que nuestras entregas son *gratuitas* para *Altamira, Tampico y Madero*')
     .addAnswer('Muchisimas gracias por su preferencia 😁', {delay: 1000,})
 
 
