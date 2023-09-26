@@ -21,6 +21,9 @@ const flowO1 = addKeyword('Info') //A partir de aqui me empieza a explicar la in
         'Permitame presentarnos, somos la muebleria *Lleiny Dayana* y nos ubicamos actualmente en Altamira, Tamaulipas',
         {media: 'https://i.imgur.com/bMWGNT6.jpg'} //Se envía logo de la empresa
     )
+    .addAnswer('Para conocer nuestras ofertas, por favor envie la palabra *Ofertas*')
+
+const flowVenta = addKeyword('Ofertas')
     .addAnswer('Son abanicos con aspas de 18" de metal y cuenta con 3 velocidades, *¡ideal para estos dias calurosos!* 🔆☀️', {
         media: 'https://i.imgur.com/iYNfiQR.jpg'//Manda la imagen del producto
     })
@@ -29,12 +32,23 @@ const flowO1 = addKeyword('Info') //A partir de aqui me empieza a explicar la in
         '*Precio al contado',
         '**Envio gratis* en la Zona Conurbada'
     ])
-    
+    .addAnswer([
+        'Digame a que ciudad gusta que le enviemos su producto 🫡', 
+        '*Tampico* 🦀',
+        '*Madero* 🏖️',
+        '*Altamira* 🚢' ,
+        '*Otra ciudad* 🌎'
+    ])
+
+const flowEntrega2 = addKeyword('otra ciudad', 'ciudad', 'cd')
+    .addAnswer('Permitame contactarlo con uno de nuestros *Agentes* para poder cotizar su articulo 🫡😉')
+
+const flowEntrega = addKeyword(['tampico', 'madero', 'altamira', 'falso'])    
     //A partir de aqui empiezo a solicitar y recopilar la informacion del cliente, conforme a sus respuestas
 
     //Aqui solicito el nombre del cliente y lo guardo en la variable myState.name
     .addAnswer('Para concretar una entrega, me podrias proporcionar tu *nombre*', {capture:true}, 
-        async(ctx, {flowDynamic, state}) => {
+        async(ctx, { flowDynamic, state}) => {
             state.update({name: ctx.body})
             console.log('Nombre cliente: ', ctx.body)
             console.log('Numero de telefono de cliente: ', ctx.from) //Para poder recuperar el numero de telefono del cliente
@@ -52,32 +66,37 @@ const flowO1 = addKeyword('Info') //A partir de aqui me empieza a explicar la in
         }    
     )
     
+    .addAnswer([
+        'Si los datos son correctos, por favor envie *Correcto* 😉',
+        'Si los datos son incorrectos por favor envia *Falso* 😅'
+    ])
+    
+
+
+const flowCorrecto = addKeyword ('Correcto')
+    
     .addAnswer('Su informacion quedo de la siguiente manera:', null, async (_, {flowDynamic, state}) => {
-            const myState = state.getMyState()
-            flowDynamic(
-                [
-                    'Nombre: ', myState.name,
-                    'Direccion: ', myState.address,
-                ]
-            )
+        const myState = state.getMyState()
+        await flowDynamic (`Nombre: ${myState.name} 📩 Direccion: ${myState.address} 🗺️`)                
         }
     )
-    .addAnswer('Su informacion ya ha sido almacenada y solamente la utilizaremos para el envio de su producto', {delay:250,})
+    .addAnswer('Su informacion ya ha sido almacenada y solamente la utilizaremos para el envio de su producto')
     .addAnswer(
         [
             'Tambien le recordamos que su pago sera *contraentrega*.🫡',
-            'Lo que significa que hasta que usted *reciba su producto*, lo paga. 😉'
-        ], {delay: 250,}
+            'Lo que significa que hasta que usted *reciba su producto*, lo paga. 😉',
+            'Y en un momento más, uno de nuestros *Agentes* se pondrá en contacto con ud. para la entrega de su producto 😁😁👌'
+        ]
     )
-    .addAnswer('Y en un momento más, uno de nuestros *Agentes* se pondrá en contacto con ud. para la entrega de su producto 😁😁👌')
-    .addAnswer('Le informamos que nuestras entregas son *gratuitas* para *Altamira, Tampico y Madero*')
-    .addAnswer('Muchisimas gracias por su preferencia 😁', {delay: 1000,})
+    .addAnswer('Le recordamos que nuestras entregas son *gratuitas* para *Altamira, Tampico y Madero*')
+    .addAnswer('Muchisimas gracias por su preferencia 😁')
 
 
 //Al recibir la palabra 'Per' manda un mensaje para temas personales
 const flowO2 = addKeyword('Per')
     .addAnswer('Dime, ¿en que puedo ayudarte? 🫡', {capture:true}, (ctx) => {
         console.log('Mensaje personal: ', ctx.body)
+        console.log('Persona: ', ctx.from)
     })
 
 
@@ -97,11 +116,12 @@ const flowPrincipal = addKeyword(['hola', 'ola', 'alo', 'oli', 'buen dia', 'buen
 const flowCuenta = addKeyword(['numero de cuenta', 'tarjeta', 'deposito'])
     .addAnswer('Claro!, con mucho gusto 😁')
     .addAnswer(['Mi numero de tarjeta es: ',
-                '*4152-3135-5676-7940*',
-                'Está a nombre de Andres Emmanuel Mendoza Acosta'
+                '*4915-6694-3740-0664*',
+                'Está a nombre de Rene Boeta'
     ])
     .addAnswer('Te agradecería mucho si me mandas un *comprobante de pago* 😉😉', {capture:true}, (ctx) => {
         console.log('Comprobante de pago: ', ctx.body,)
+        console.lot('Cliente: ', ctx.from)
     })
 
 
@@ -110,7 +130,7 @@ const main = async () => {
         dbUri: MONGO_DB_URI,
         dbName: MONGO_DB_NAME, //Aquí se está habilitando la base de datos
     })
-    const adapterFlow = createFlow([flowPrincipal, flowCuenta, flowO1, flowO2])//Aquí estoy poniendo cuales son los flujos principales
+    const adapterFlow = createFlow([flowPrincipal, flowCuenta, flowO1, flowO2, flowCorrecto, flowVenta, flowEntrega, flowEntrega2])//Aquí estoy poniendo cuales son los flujos principales
     const adapterProvider = createProvider(BaileysProvider)
     createBot({
         flow: adapterFlow,
