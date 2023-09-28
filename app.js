@@ -1,6 +1,6 @@
 //https://bot-whatsapp.netlify.app/docs/add-action/
 
-const { createBot, createProvider, createFlow, addKeyword } = require('@bot-whatsapp/bot')
+const { createBot, createProvider, createFlow, addKeyword, EVENTS } = require('@bot-whatsapp/bot')
 
 const QRPortalWeb = require('@bot-whatsapp/portal')
 const BaileysProvider = require('@bot-whatsapp/provider/baileys')
@@ -50,8 +50,8 @@ const flowEntrega = addKeyword(['tampico', 'madero', 'altamira', 'falso'])
     .addAnswer('Para concretar una entrega, me podrias proporcionar tu *nombre*', {capture:true}, 
         async(ctx, { flowDynamic, state}) => {
             state.update({name: ctx.body})
-            console.log('Nombre cliente: ', ctx.body)
-            console.log('Numero de telefono de cliente: ', ctx.from) //Para poder recuperar el numero de telefono del cliente
+            /*console.log('Nombre cliente: ', ctx.body)
+            console.log('Numero de telefono de cliente: ', ctx.from)*/ //Para poder recuperar el numero de telefono del cliente
             flowDynamic('¡Muchas gracias!')
         }
     )
@@ -60,8 +60,8 @@ const flowEntrega = addKeyword(['tampico', 'madero', 'altamira', 'falso'])
     .addAnswer('¿Cual es su direccion?', {capture:true},
         async(ctx, {flowDynamic, state}) => {
             state.update({address: ctx.body})
-            console.log('Direccion cliente: ', ctx.body)
-            console.log('Cliente: ', ctx.from)
+            /*console.log('Direccion cliente: ', ctx.body)
+            console.log('Cliente: ', ctx.from)*/
             flowDynamic('¡Ya casi terminamos!')
         }    
     )
@@ -93,22 +93,34 @@ const flowCorrecto = addKeyword ('Correcto')
 
 
 //Al recibir la palabra 'Per' manda un mensaje para temas personales
-const flowO2 = addKeyword('Per')
+const flowO2 = addKeyword('Personal', {sensitive:true} )
     .addAnswer('Dime, ¿en que puedo ayudarte? 🫡', {capture:true}, (ctx) => {
         console.log('Mensaje personal: ', ctx.body)
         console.log('Persona: ', ctx.from)
     })
 
+   /* .addAction(async (_, { flowDynamic, globalState }) => {
+        const currentGlobalState = globalState.getMyState();
+        if(currentGlobalState.encendido){
+            globalState.update({encendido:false})
+            console.log('Bot apagado')
+        }else{
+            globalState.update({encendido:true})
+            console.log('Bot activado')
+        }
+        })*/
 
-//Flujo de entrada, primer mensaje que se envía
-const flowPrincipal = addKeyword(['hola', 'ola', 'alo', 'oli', 'buen dia', 'buena noche', 'buena tarde', 'tardes'])
+const flowEntrada = addKeyword (EVENTS.WELCOME)
+//Cambiamos el flujo de entrada, para que cualquier acción habilite el bot
+/*Flujo de entrada, primer mensaje que se envía
+const flowPrincipal = addKeyword(['hola', 'ola', 'alo', 'oli', 'buen dia', 'buena noche', 'buena tarde', 'tardes'])*/
     .addAnswer('*¡Hola!* 😃')
     .addAnswer(
         [
             'Digame en que le puedo apoyar el dia de hoy',
             'Envie un *Info* para informacion acerca de nuestros productos en existencia.',
             'Envie un *Tarjeta* si necesita el número de tarjeta para abonar a su crédito',
-            'Envie un *Per* si es un tema personal.'
+            'Envie un *Personal* si es un tema personal.'
         ])
 
 
@@ -121,16 +133,22 @@ const flowCuenta = addKeyword(['numero de cuenta', 'tarjeta', 'deposito'])
     ])
     .addAnswer('Te agradecería mucho si me mandas un *comprobante de pago* 😉😉', {capture:true}, (ctx) => {
         console.log('Comprobante de pago: ', ctx.body,)
-        console.lot('Cliente: ', ctx.from)
+        console.log('Cliente: ', ctx.from)
     })
-
-
+/*
+const flowImg = addKeyword(EVENTS.MEDIA)
+    .addAnswer('Gracias por su comprobante 😉', {capture:true}, (ctx, {flowDynamic}) => {
+        console.log('Comprobante: ', ctx.body)
+        console.log('Cliente: ', ctx.from)
+        flowDynamic('¿Hay algo más en lo que le podamos apoyar?')
+    })
+*/
 const main = async () => {
     const adapterDB = new MongoAdapter({
         dbUri: MONGO_DB_URI,
         dbName: MONGO_DB_NAME, //Aquí se está habilitando la base de datos
     })
-    const adapterFlow = createFlow([flowPrincipal, flowCuenta, flowO1, flowO2, flowCorrecto, flowVenta, flowEntrega, flowEntrega2])//Aquí estoy poniendo cuales son los flujos principales
+    const adapterFlow = createFlow([flowEntrada, flowCuenta, flowO1, flowO2, flowCorrecto, flowVenta, flowEntrega, flowEntrega2])//Aquí estoy poniendo cuales son los flujos principales
     const adapterProvider = createProvider(BaileysProvider)
     createBot({
         flow: adapterFlow,
